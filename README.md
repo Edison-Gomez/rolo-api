@@ -58,6 +58,13 @@ Base URL local: `http://localhost:3000/api/v1/puntos`
 }
 ```
 
+### Quién puede editar o borrar
+
+Cada celular genera una llave secreta y la manda en el encabezado `X-Rolo-Llave`.
+Al crear un punto se guarda solo la huella SHA-256 de esa llave (campo `propietario`, que nunca se
+devuelve). `PUT` y `DELETE` responden **403** si la llave no coincide. Confirmar ("yo también lo vi")
+y marcar como arreglado los puede hacer cualquiera.
+
 Obligatorios: `categoria`, `lat` y `lng`. Categorías válidas: `reporte`, `casa`, `mirador`,
 `parque`, `biblioteca`, `museo`, `monumento`, `restaurante`, `centro_comercial`, `aeropuerto`, `otro`.
 

@@ -2,12 +2,15 @@ import { Request, Response } from "express";
 import { aRespuesta } from "./punto.model";
 import { PuntoService } from "./punto.service";
 
+// Llave secreta del celular que hace la petición (la genera la app la primera vez).
+const llave = (req: Request): string | undefined => req.get("x-rolo-llave") || undefined;
+
 export class PuntoController {
 
     private readonly puntoService = new PuntoService();
 
     create = async (req: Request, res: Response): Promise<void> => {
-        const punto = await this.puntoService.create(req.body);
+        const punto = await this.puntoService.create(req.body, llave(req));
         res.status(201).json(aRespuesta(punto));
     };
 
@@ -22,7 +25,7 @@ export class PuntoController {
     };
 
     update = async (req: Request<{ id: string }>, res: Response): Promise<void> => {
-        const punto = await this.puntoService.update(req.params.id, req.body);
+        const punto = await this.puntoService.update(req.params.id, req.body, llave(req));
         res.status(200).json(aRespuesta(punto));
     };
 
@@ -37,7 +40,7 @@ export class PuntoController {
     };
 
     delete = async (req: Request<{ id: string }>, res: Response): Promise<void> => {
-        await this.puntoService.delete(req.params.id);
+        await this.puntoService.delete(req.params.id, llave(req));
         res.status(204).send();
     };
 }

@@ -3,6 +3,8 @@
 ### Cambia @base por la URL de Render cuando la publiques.
 
 @base = http://localhost:3000/api/v1/puntos
+# Llave secreta de "este celular". Solo quien creó un punto con esta llave puede editarlo o borrarlo.
+@llave = llave-de-prueba-1234567890
 
 ### Servidor arriba
 GET http://localhost:3000/health
@@ -10,6 +12,7 @@ GET http://localhost:3000/health
 ### Crear un reporte
 POST {{base}}
 Content-Type: application/json
+X-Rolo-Llave: {{llave}}
 
 {
   "nombre": "Hueco carrera 7",
@@ -40,9 +43,10 @@ GET {{base}}?categoria=reporte&resuelto=false&lat=4.6&lng=-74.07&radio=500
 ### Traer uno (pega un id de la respuesta de arriba)
 GET {{base}}/PEGA_AQUI_EL_ID
 
-### Actualizar
+### Actualizar (solo con la misma llave con que se creó; si no, 403)
 PUT {{base}}/PEGA_AQUI_EL_ID
 Content-Type: application/json
+X-Rolo-Llave: {{llave}}
 
 {
   "nota": "Lo taparon a medias"
@@ -59,5 +63,6 @@ Content-Type: application/json
   "resuelto": true
 }
 
-### Eliminar
+### Eliminar (solo con la misma llave con que se creó; si no, 403)
 DELETE {{base}}/PEGA_AQUI_EL_ID
+X-Rolo-Llave: {{llave}}

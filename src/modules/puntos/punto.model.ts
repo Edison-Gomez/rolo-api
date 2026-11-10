@@ -44,6 +44,9 @@ export interface Punto {
     fechaArreglo: Date | null;
     // Cuántas personas confirmaron "yo también lo vi"
     confirmaciones: number;
+    // Huella (SHA-256) de la llave secreta del celular que lo publicó.
+    // Solo ese celular puede editarlo o borrarlo. Nunca se envía en las respuestas.
+    propietario?: string | null;
     createdAt: Date;
     updatedAt: Date;
 }

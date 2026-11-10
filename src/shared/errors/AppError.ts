@@ -26,3 +26,9 @@ export class NotFoundError extends AppError {
         super(message, 404);
     }
 }
+
+export class ForbiddenError extends AppError {
+    constructor(message = "No tienes permiso para hacer esto") {
+        super(message, 403);
+    }
+}

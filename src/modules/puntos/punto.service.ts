@@ -1,5 +1,6 @@
+import { createHash } from "crypto";
 import { ObjectId } from "mongodb";
-import { BadRequestError, NotFoundError } from "../../shared/errors/AppError";
+import { BadRequestError, ForbiddenError, NotFoundError } from "../../shared/errors/AppError";
 import { CATEGORIAS, Categoria, FiltrosPuntos, Punto, PuntoDTO } from "./punto.model";
 import { PuntoRepository } from "./punto.repository";
 
@@ -11,7 +12,11 @@ export class PuntoService {
 
     private readonly puntoRepository = new PuntoRepository();
 
-    async create(data: PuntoDTO): Promise<Punto> {
+    /**
+     * `llave` es el secreto que cada celular manda en el encabezado X-Rolo-Llave.
+     * Se guarda solo su huella: quien lea la base de datos no puede usarla.
+     */
+    async create(data: PuntoDTO, llave?: string): Promise<Punto> {
         const nombre = this.optionalString(data?.nombre, "nombre", 80);
         const nota = this.optionalString(data?.nota, "nota", 500);
         const direccion = this.optionalString(data?.direccion, "direccion", 200);
@@ -28,6 +33,7 @@ export class PuntoService {
             resuelto: false,
             fechaArreglo: null,
             confirmaciones: 0,
+            propietario: llave ? this.huella(llave) : null,
             createdAt: now,
             updatedAt: now,
         });
@@ -75,8 +81,9 @@ export class PuntoService {
         return punto;
     }
 
-    async update(id: string, data: PuntoDTO): Promise<Punto> {
+    async update(id: string, data: PuntoDTO, llave?: string): Promise<Punto> {
         const objectId = this.toObjectId(id);
+        await this.exigirPropietario(objectId, llave);
         const changes: Partial<Punto> = {};
 
         if (data.nombre !== undefined) changes.nombre = this.optionalString(data.nombre, "nombre", 80);
@@ -121,11 +128,33 @@ export class PuntoService {
         );
     }
 
-    async delete(id: string): Promise<void> {
+    async delete(id: string, llave?: string): Promise<void> {
+        await this.exigirPropietario(this.toObjectId(id), llave);
         const deleted = await this.puntoRepository.delete(this.toObjectId(id));
         if (!deleted) {
             throw new NotFoundError("Punto no encontrado");
         }
+    }
+
+    // ---------------------------------------------------------------- propietario
+
+    // Solo el celular que publicó el punto puede editarlo o borrarlo.
+    // Confirmar y marcar como arreglado sí los puede hacer cualquiera.
+    private async exigirPropietario(id: ObjectId, llave?: string): Promise<void> {
+        const punto = await this.puntoRepository.findById(id);
+        if (!punto) {
+            throw new NotFoundError("Punto no encontrado");
+        }
+        if (!punto.propietario || !llave || this.huella(llave) !== punto.propietario) {
+            throw new ForbiddenError("Solo quien publicó este punto puede editarlo o borrarlo");
+        }
+    }
+
+    private huella(llave: string): string {
+        if (typeof llave !== "string" || llave.length < 16 || llave.length > 200) {
+            throw new BadRequestError("La llave del encabezado X-Rolo-Llave no es válida");
+        }
+        return createHash("sha256").update(llave).digest("hex");
     }
 
     // ---------------------------------------------------------------- validaciones
