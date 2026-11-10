@@ -1,0 +1,63 @@
+### Pruebas de la API de Rolo
+### Se usan con la extensión "REST Client" de VS Code (o copia cada una en Postman).
+### Cambia @base por la URL de Render cuando la publiques.
+
+@base = http://localhost:3000/api/v1/puntos
+
+### Servidor arriba
+GET http://localhost:3000/health
+
+### Crear un reporte
+POST {{base}}
+Content-Type: application/json
+
+{
+  "nombre": "Hueco carrera 7",
+  "nota": "Grande, en el carril derecho",
+  "categoria": "reporte",
+  "direccion": "Carrera 7 # 12-34, La Candelaria",
+  "lat": 4.6012,
+  "lng": -74.0701
+}
+
+### Crear un lugar
+POST {{base}}
+Content-Type: application/json
+
+{
+  "nombre": "Mirador de La Calera",
+  "categoria": "mirador",
+  "lat": 4.6717,
+  "lng": -74.023
+}
+
+### Listar todos
+GET {{base}}
+
+### Solo reportes sin arreglar a menos de 500 m
+GET {{base}}?categoria=reporte&resuelto=false&lat=4.6&lng=-74.07&radio=500
+
+### Traer uno (pega un id de la respuesta de arriba)
+GET {{base}}/PEGA_AQUI_EL_ID
+
+### Actualizar
+PUT {{base}}/PEGA_AQUI_EL_ID
+Content-Type: application/json
+
+{
+  "nota": "Lo taparon a medias"
+}
+
+### Yo también lo vi
+POST {{base}}/PEGA_AQUI_EL_ID/confirmar
+
+### Marcar como arreglado
+PATCH {{base}}/PEGA_AQUI_EL_ID/estado
+Content-Type: application/json
+
+{
+  "resuelto": true
+}
+
+### Eliminar
+DELETE {{base}}/PEGA_AQUI_EL_ID
